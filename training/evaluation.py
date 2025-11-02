@@ -1,18 +1,4 @@
-"""Evaluation utilities for semantic segmentation models.
-
-Example
--------
->>> import torch
->>> from torch.utils.data import DataLoader
->>> from training.evaluation import evaluate
->>> model = torch.nn.Conv2d(3, 2, kernel_size=1)
->>> loss_fn = torch.nn.CrossEntropyLoss()
->>> batch = {"image": torch.randn(1, 3, 4, 4), "mask": torch.zeros(1, 4, 4, dtype=torch.long)}
->>> dataloader = DataLoader([batch], batch_size=None)
->>> metrics = evaluate(model, dataloader, loss_fn, device="cpu")
->>> "loss" in metrics
-True
-"""
+"""Evaluation utilities for semantic segmentation models."""
 
 from __future__ import annotations
 

@@ -77,9 +77,6 @@ class HKCoralDataset(Dataset):
         if self.transform is not None:
             image, mask = self.transform(image, mask)
 
-        if mask is None:
-            raise RuntimeError("Mask is None. HKCoralDataset currently expects masks to be available.")
-
         return {"image": image, "mask": mask, "id": f"{image_id}.jpg"}
 
     def _load_image(self, path: Path) -> torch.Tensor:
@@ -128,3 +125,4 @@ def build_hk_coral_dataloader(
 
 
 __all__ = ["HKCoralDataset", "build_hk_coral_dataloader"]
+

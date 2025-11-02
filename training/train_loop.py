@@ -1,19 +1,4 @@
-"""Training loop helpers built around PyTorch standard APIs.
-
-Example
--------
->>> import torch
->>> from torch.utils.data import DataLoader
->>> from training.train_loop import train_one_epoch
->>> model = torch.nn.Conv2d(3, 2, kernel_size=1)
->>> optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
->>> loss_fn = torch.nn.CrossEntropyLoss()
->>> dummy_batch = {"image": torch.randn(2, 3, 4, 4), "mask": torch.zeros(2, 4, 4, dtype=torch.long)}
->>> dataloader = DataLoader([dummy_batch], batch_size=None)
->>> metrics = train_one_epoch(model, dataloader, optimizer, loss_fn, device="cpu")
->>> "loss" in metrics
-True
-"""
+"""Training loop helpers built around PyTorch standard APIs."""
 
 from __future__ import annotations
 
@@ -57,8 +42,8 @@ def train_one_epoch(
         if num_classes is not None
         else None
     )
-    iterator = tqdm(dataloader, desc="train", leave=False)
-    for batch in iterator:
+    batch_iter = tqdm(dataloader, desc="train", leave=False)
+    for batch in batch_iter:
         images = batch["image"].to(device_str)
         targets = batch["mask"].to(device_str)
         optimizer.zero_grad()
@@ -95,6 +80,7 @@ def train_one_epoch(
         if metric_aggregator is not None and logits is not None:
             preds = torch.argmax(logits.detach(), dim=1)
             metric_aggregator.update(preds, targets.detach())
+        batch_iter.set_postfix(loss=float(loss.detach()))
 
     summary = metric_logger.summary()
     if metric_aggregator is not None:
@@ -119,8 +105,8 @@ def fit(
     """Run a multi-epoch training loop and optionally log curves."""
 
     summary: Dict[str, float] = {}
-    epoch_iterator = tqdm(range(epochs), desc="epochs")
-    for epoch in epoch_iterator:
+    epoch_iter = tqdm(range(epochs), desc="epochs")
+    for epoch in epoch_iter:
         metrics = train_one_epoch(
             model,
             train_loader,
@@ -137,6 +123,7 @@ def fit(
         if scheduler is not None:
             scheduler.step()
         summary = metrics
+        epoch_iter.set_postfix(loss=metrics.get("loss", 0.0), miou=metrics.get("miou", 0.0))
     if curve_writer is not None:
         curve_writer.save()
     return summary

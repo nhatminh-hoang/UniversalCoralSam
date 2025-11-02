@@ -215,12 +215,7 @@ def train_variant(
         curve_writer.save()
 
     if best_val_metrics is None:
-        if history:
-            best_val_metrics = history[-1]["val"]
-            best_epoch = history[-1]["epoch"]
-            best_miou = best_val_metrics.get("miou", best_miou)
-        else:
-            best_val_metrics = {}
+        best_val_metrics = history[-1]["val"] if history else {}
         torch.save(model.state_dict(), best_checkpoint_path)
 
     best_state = torch.load(best_checkpoint_path, map_location=device)
@@ -288,7 +283,7 @@ def main() -> None:
         curve_path = None
         if curve_root is not None:
             curve_root.mkdir(parents=True, exist_ok=True)
-            curve_path = curve_root / f"{variant}_curve.json"
+            curve_path = curve_root / f"{variant}_curve.png"
 
         result = train_variant(
             variant=variant,
