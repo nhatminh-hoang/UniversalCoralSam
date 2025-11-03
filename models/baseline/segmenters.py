@@ -185,7 +185,7 @@ def _build_mask2former_config(variant: str, num_classes: int) -> "Mask2FormerCon
     config.semantic_loss_ignore_index = 255
 
     variant = variant.lower()
-    backbone_config = dict(config.backbone_config)
+    backbone_config = config.backbone_config.to_dict()
 
     if variant == "swin_t":
         backbone_config.update({"embed_dim": 96, "depths": [2, 2, 6, 2], "num_heads": [3, 6, 12, 24], "drop_path_rate": 0.2})
@@ -194,7 +194,7 @@ def _build_mask2former_config(variant: str, num_classes: int) -> "Mask2FormerCon
     else:
         raise ValueError(f"Unknown Mask2Former variant '{variant}'.")
 
-    config.backbone_config = backbone_config
+    config.backbone_config = type(config.backbone_config)(**backbone_config)
     return config
 
 
