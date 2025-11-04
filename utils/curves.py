@@ -22,6 +22,9 @@ class TrainingCurveWriter:
     def log_step(self, iteration: int, metrics: Dict[str, float]) -> None:
         self.steps.append(iteration)
         for name, value in metrics.items():
+            lower = name.lower()
+            if "time" in lower or lower == "samples_per_sec":
+                continue
             series = self.traces.setdefault(name, [])
             series.append(float(value))
 
@@ -44,4 +47,3 @@ if __name__ == "__main__":
     for step in range(5):
         writer.log_step(step, {"loss": 1 / (step + 1), "miou": step / 5})
     writer.save()
-

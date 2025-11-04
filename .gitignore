@@ -92,3 +92,5 @@ temp/
 *.tmp
 
 HKCoral/
+evaluation_outputs/
+artifacts/

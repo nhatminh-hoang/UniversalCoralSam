@@ -15,6 +15,7 @@ import torch
 from dataset import DATASET_BUILDERS, create_dataloader
 from models import available_models, get_model
 from training import fit
+from utils import configure_huggingface_environment
 from utils.curves import TrainingCurveWriter
 
 
@@ -72,12 +73,33 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--curve-path", default=None, help="Optional path to save training curves.")
     parser.add_argument("--cpu", action="store_true", help="Force CPU execution even if CUDA is available.")
+    parser.add_argument("--hf-cache-dir", default=None, help="Optional directory to use as Hugging Face cache.")
+    parser.set_defaults(hf_offline=None)
+    parser.add_argument(
+        "--hf-offline",
+        dest="hf_offline",
+        action="store_true",
+        help="Enable Hugging Face offline mode (sets HF_HUB_OFFLINE, TRANSFORMERS_OFFLINE, etc.).",
+    )
+    parser.add_argument(
+        "--hf-online",
+        dest="hf_offline",
+        action="store_false",
+        help="Disable Hugging Face offline mode (removes related environment flags).",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     device = "cpu" if args.cpu or not torch.cuda.is_available() else "cuda"
+
+    cache_path = configure_huggingface_environment(args.hf_cache_dir, offline=args.hf_offline)
+    if cache_path is not None:
+        print(f"[train] Using Hugging Face cache directory: {cache_path}")
+    if args.hf_offline is not None:
+        state = "enabled" if args.hf_offline else "disabled"
+        print(f"[train] Hugging Face offline mode {state}.")
 
     dataset_kwargs = _parse_dataset_args(args.dataset_arg)
     try:

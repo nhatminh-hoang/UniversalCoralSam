@@ -24,16 +24,23 @@ from .baseline import (
     build_mask2former,
     build_segformer,
 )
+from .dino import build_dinov2, build_dinov3
 
 
 MODEL_BUILDERS: Dict[str, Callable[..., nn.Module]] = {
     "baseline_small_unet": build_baseline_model,
     "deeplabv3_resnet50": build_deeplabv3_resnet50,
     "deeplabv3_resnet101": build_deeplabv3_resnet101,
+    "dinov2": build_dinov2,
+    "dinov3": build_dinov3,
     "mask2former_swin_t": partial(build_mask2former, "swin_t"),
     "mask2former_swin_s": partial(build_mask2former, "swin_s"),
+    "mask2former_swin_base": partial(build_mask2former, "mask2former_swin_base"),
+    "mask2former_swin_large": partial(build_mask2former, "mask2former_swin_large"),
     "segformer_b0": partial(build_segformer, "b0"),
     "segformer_b1": partial(build_segformer, "b1"),
+    "segformer_b2_cityscapes": partial(build_segformer, "segformer_b2_cityscapes"),
+    "segformer_b5_cityscapes": partial(build_segformer, "segformer_b5_cityscapes"),
 }
 
 MODEL_ALIASES = {

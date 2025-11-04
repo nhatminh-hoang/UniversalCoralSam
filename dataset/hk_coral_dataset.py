@@ -97,6 +97,8 @@ def build_hk_coral_dataloader(
     num_workers: int,
     transform: Optional[Callable[[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]]] = None,
     ids: Optional[Iterable[str]] = None,
+    worker_init_fn: Optional[Callable[[int], None]] = None,
+    generator: Optional[torch.Generator] = None,
 ) -> DataLoader:
     """Create a DataLoader for the HKCoral dataset.
 
@@ -121,8 +123,9 @@ def build_hk_coral_dataloader(
         shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=True,
+        worker_init_fn=worker_init_fn,
+        generator=generator,
     )
 
 
 __all__ = ["HKCoralDataset", "build_hk_coral_dataloader"]
-

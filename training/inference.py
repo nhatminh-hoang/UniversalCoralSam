@@ -21,15 +21,28 @@ import torch
 from torch import Tensor
 
 
+def _infer_model_float_dtype(model: torch.nn.Module) -> torch.dtype:
+    for tensor in model.parameters():
+        if torch.is_floating_point(tensor):
+            return tensor.dtype
+    for tensor in model.buffers():
+        if torch.is_floating_point(tensor):
+            return tensor.dtype
+    return torch.float32
+
+
 def predict(
     model: torch.nn.Module,
     dataloader: Iterable[Dict[str, torch.Tensor]],
     device: str,
 ) -> Iterator[Dict[str, torch.Tensor]]:
     model.eval()
+    model_dtype = _infer_model_float_dtype(model)
     with torch.no_grad():
         for batch in dataloader:
             images = batch["image"].to(device)
+            if torch.is_tensor(images) and torch.is_floating_point(images) and images.dtype != model_dtype:
+                images = images.to(model_dtype)
             if getattr(model, "requires_targets", False):
                 outputs = model(images, None)
             else:
@@ -65,10 +78,12 @@ def predict(
                 masks = [None] * preds.shape[0]
 
             for idx in range(preds.shape[0]):
+                pred_slice = preds[idx].squeeze(0).cpu()
+                image_slice = images[idx].cpu()
                 sample = {
                     "id": ids[idx],
-                    "pred": preds[idx : idx + 1].cpu(),
-                    "image": images[idx].cpu(),
+                    "pred": pred_slice,
+                    "image": image_slice,
                 }
                 if isinstance(masks, torch.Tensor):
                     sample["mask"] = masks[idx]

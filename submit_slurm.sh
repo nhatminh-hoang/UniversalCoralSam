@@ -1,7 +1,7 @@
 #!/bin/bash
 # Submit this script with: sbatch submit_slurm.sh
 
-#SBATCH --job-name=coral-train
+#SBATCH --job-name=hkcoral-train
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
@@ -10,17 +10,20 @@
 
 module load python/3.10 2>/dev/null || true
 
-export IMAGES_DIR=${IMAGES_DIR:-data/images}
-export MASKS_DIR=${MASKS_DIR:-data/masks}
-export NUM_CLASSES=${NUM_CLASSES:-5}
-export EPOCHS=${EPOCHS:-10}
-export BATCH_SIZE=${BATCH_SIZE:-4}
+export HKCORAL_ROOT=${HKCORAL_ROOT:-HKCoral}
+export DATA_ROOT=${DATA_ROOT:-$HKCORAL_ROOT}
+export OUTPUT_DIR=${OUTPUT_DIR:-artifacts/hkcoral}
+export CURVE_DIR=${CURVE_DIR:-artifacts/hkcoral/curves}
+export METRICS_OUT=${METRICS_OUT:-artifacts/hkcoral/metrics.json}
+export BATCH_SIZE=${BATCH_SIZE:-2}
+export EPOCHS=${EPOCHS:-100}
+export NUM_WORKERS=${NUM_WORKERS:-4}
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export HF_HOME=${HF_HOME:-${REPO_ROOT}/artifacts/hf_cache}
+default_models="mask2former_swin_base mask2former_swin_large segformer_b2_cityscapes segformer_b5_cityscapes"
+export MODELS="${MODELS:-$default_models}"
 
-python train.py \
-  --images "$IMAGES_DIR" \
-  --masks "$MASKS_DIR" \
-  --num-classes "$NUM_CLASSES" \
-  --epochs "$EPOCHS" \
-  --batch-size "$BATCH_SIZE" \
-  --curve-path "training_curve.png"
+mkdir -p "$(dirname "${METRICS_OUT}")" "${OUTPUT_DIR}" "${CURVE_DIR}" "${HF_HOME}" logs
 
+# Defer to the HKCoral helper script so the training/evaluation logic stays in one place.
+bash run_hkcoral.sh --phase train "$@"

@@ -28,14 +28,18 @@ def evaluate(
     amp_dtype: Optional[torch.dtype] = None,
     num_classes: Optional[int] = None,
     ignore_index: Optional[int] = None,
+    ignore_labels: Optional[Iterable[int]] = None,
 ) -> Dict[str, float]:
     model.eval()
     logger = MetricLogger()
-    metric_aggregator = (
-        SegmentationMetricAggregator(num_classes=num_classes, ignore_index=ignore_index)
-        if num_classes is not None
-        else None
-    )
+    metric_aggregator = None
+    if num_classes is not None:
+        metric_aggregator = SegmentationMetricAggregator(
+            num_classes=num_classes,
+            ignore_index=ignore_index,
+            device=device,
+            ignore_labels=tuple(ignore_labels) if ignore_labels is not None else None,
+        )
     device_str = str(device)
     with torch.no_grad():
         for batch in dataloader:
@@ -72,5 +76,3 @@ def evaluate(
     if metric_aggregator is not None:
         summary.update(metric_aggregator.summary())
     return summary
-
-

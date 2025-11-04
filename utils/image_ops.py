@@ -11,7 +11,10 @@ import torch
 def tensor_to_image(tensor: torch.Tensor) -> np.ndarray:
     """Convert a CHW or HW tensor in [0, 1] or [0, 255] to a uint8 HWC array."""
 
-    array = tensor.detach().cpu().numpy()
+    tensor_cpu = tensor.detach().cpu()
+    if tensor_cpu.dtype == torch.bfloat16:
+        tensor_cpu = tensor_cpu.to(torch.float32)
+    array = tensor_cpu.numpy()
     if array.ndim == 3:
         array = np.moveaxis(array, 0, -1)
     if array.ndim not in {2, 3}:
@@ -46,4 +49,3 @@ def ensure_square(array: np.ndarray) -> np.ndarray:
 
 
 __all__ = ["center_crop", "ensure_square", "tensor_to_image"]
-
